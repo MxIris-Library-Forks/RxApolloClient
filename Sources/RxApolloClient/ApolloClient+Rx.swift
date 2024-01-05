@@ -8,6 +8,7 @@
 import Foundation
 import Apollo
 import RxSwift
+import ApolloAPI
 
 public enum ApolloError: Error {
   case gqlErrors([GraphQLError])
@@ -31,6 +32,7 @@ extension Reactive where Base: ApolloClientProtocol {
     query: Query,
     cachePolicy: CachePolicy = .default,
     contextIdentifier: UUID? = nil,
+    context: RequestContext? = nil,
     queue: DispatchQueue = DispatchQueue.main
   ) -> Maybe<Query.Data> {
     return Maybe.create { [weak base] observer in
@@ -38,6 +40,7 @@ extension Reactive where Base: ApolloClientProtocol {
         query: query,
         cachePolicy: cachePolicy,
         contextIdentifier: contextIdentifier,
+        context: context,
         queue: queue,
         resultHandler: { result in
           switch result {
@@ -72,12 +75,14 @@ extension Reactive where Base: ApolloClientProtocol {
   public func watch<Query: GraphQLQuery>(
     query: Query,
     cachePolicy: CachePolicy = .default,
+    context: RequestContext? = nil,
     callbackQueue: DispatchQueue = DispatchQueue.main
   ) -> Observable<Query.Data> {
     return Observable.create { [weak base] observer in
       let watcher = base?.watch(
         query: query,
         cachePolicy: cachePolicy,
+        context: context,
         callbackQueue: callbackQueue,
         resultHandler: { result in
           switch result {
@@ -111,12 +116,14 @@ extension Reactive where Base: ApolloClientProtocol {
   public func perform<Mutation: GraphQLMutation>(
     mutation: Mutation,
     publishResultToStore: Bool = true,
+    context: RequestContext? = nil,
     queue: DispatchQueue = DispatchQueue.main
   ) -> Maybe<Mutation.Data> {
     return Maybe.create { [weak base] observer in
       let cancellable = base?.perform(
         mutation: mutation,
         publishResultToStore: publishResultToStore,
+        context: context,
         queue: queue,
         resultHandler: { result in
           switch result {
@@ -154,12 +161,14 @@ extension Reactive where Base: ApolloClientProtocol {
   public func upload<Operation: GraphQLOperation>(
     operation: Operation,
     files: [GraphQLFile],
+    context: RequestContext? = nil,
     queue: DispatchQueue = .main
   ) -> Maybe<Operation.Data> {
     return Maybe.create { [weak base] observer in
       let cancellable = base?.upload(
         operation: operation,
         files: files,
+        context: context,
         queue: queue,
         resultHandler: { result in
           switch result {
@@ -193,11 +202,13 @@ extension Reactive where Base: ApolloClientProtocol {
    */
   public func subscribe<Subscription: GraphQLSubscription>(
     subscription: Subscription,
+    context: RequestContext? = nil,
     queue: DispatchQueue = .main
   ) -> Observable<Subscription.Data> {
     return Observable.create { [weak base] observer in
       let cancellable = base?.subscribe(
         subscription: subscription,
+        context: context,
         queue: queue,
         resultHandler: { result in
           switch result {
